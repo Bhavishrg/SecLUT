@@ -1,6 +1,6 @@
 #include <io/netmp.h>
-#include <graphdb/offline_evaluator.h>
-#include <graphdb/online_evaluator.h>
+#include <shlut/offline_evaluator.h>
+#include <shlut/online_evaluator.h>
 #include <utils/circuit.h>
 
 #include <algorithm>
@@ -12,7 +12,7 @@
 
 #include "utils.h"
 
-using namespace graphdb;
+using namespace shlut;
 using json = nlohmann::json;
 namespace bpo = boost::program_options;
 

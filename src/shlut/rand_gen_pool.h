@@ -7,7 +7,7 @@
 
 using namespace common::utils;
 
-namespace graphdb {
+namespace shlut {
 
 // Collection of PRGs.
 class RandGenPool {
@@ -30,4 +30,4 @@ class RandGenPool {
   emp::PRG& pi(int i);
 };
 
-};  // namespace graphdb
+};  // namespace shlut

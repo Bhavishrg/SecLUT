@@ -3,8 +3,8 @@
 #include <emp-tool/emp-tool.h>
 #include <io/netmp.h>
 #include <utils/helpers.h>
-#include <graphdb/offline_evaluator.h>
-#include <graphdb/rand_gen_pool.h>
+#include <shlut/offline_evaluator.h>
+#include <shlut/rand_gen_pool.h>
 #include <utils/circuit.h>
 
 #include <algorithm>
@@ -17,7 +17,7 @@
 #include <random>
 #include <vector>
 
-using namespace graphdb;
+using namespace shlut;
 namespace bdata = boost::unit_test::data;
  
 

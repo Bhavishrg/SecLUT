@@ -13,13 +13,13 @@
 
 
 #include "preproc.h"
-#include "graphdb/rand_gen_pool.h"
+#include "shlut/rand_gen_pool.h"
 #include "sharing.h"
 #include "../utils/types.h"
 
 using namespace common::utils;
 
-namespace graphdb {
+namespace shlut {
 class OfflineEvaluator {
   int nP_;  
   int id_;
@@ -42,6 +42,7 @@ class OfflineEvaluator {
                          bool via_pking, int latency);
 
   public:
+  
   OfflineEvaluator(int nP, int my_id, std::shared_ptr<io::NetIOMP> network,
                    common::utils::LevelOrderedCircuit circ, int threads, int seed = 200, int latency = 100, bool use_pking = true);
 
@@ -54,26 +55,13 @@ class OfflineEvaluator {
                                 AddShare<Ring>& share, TPShare<Ring>& tpShare, Ring secret,
                                 std::vector<Ring>& rand_sh_sec, size_t& idx_rand_sh_sec);
 
-  // Generate sharing of a random unknown permutation.
-  static void randomPermutation(int nP, int pid, RandGenPool& rgen, std::vector<int>& pi, size_t& vec_size);
-
-  void generateShuffleDeltaVector(int nP, int pid, RandGenPool& rgen, std::vector<Ring>& delta,
-                                  std::vector<TPShare<Ring>>& tp_a, std::vector<TPShare<Ring>>& tp_b,
-                                  std::vector<TPShare<Ring>>& tp_c, std::vector<std::vector<int>>& tp_pi_all,
-                                  size_t& vec_size, std::vector<Ring>& rand_sh_sec, size_t& idx_rand_sh_sec);
-
-
-  void generatePermAndShDeltaVector(int nP, int pid, RandGenPool& rgen, int owner, std::vector<AddShare<Ring>>& delta,
-                                    std::vector<TPShare<Ring>>& tp_a, std::vector<TPShare<Ring>>& tp_b,
-                                    std::vector<int>& pi, size_t& vec_size, std::vector<Ring>& delta_sh, size_t& idx_delta_sh);
-
+  
   // Following methods implement various preprocessing subprotocols.
 
   // Set masks for each wire. Should be called before running any of the other
   // subprotocols.
   void setWireMasksParty(const std::unordered_map<common::utils::wire_t, int>& input_pid_map,
-                         std::vector<Ring>& rand_sh_sec,
-                         std::vector<std::vector<Ring>>& delta_sh);
+                         std::vector<Ring>& rand_sh_sec);
 
   void setWireMasks(const std::unordered_map<common::utils::wire_t, int>& input_pid_map);
 
@@ -83,4 +71,4 @@ class OfflineEvaluator {
   PreprocCircuit<Ring> run(const std::unordered_map<common::utils::wire_t, int>& input_pid_map);
 };
 
-};  // namespace graphdb
+};  // namespace shlut

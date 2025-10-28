@@ -1,6 +1,6 @@
 #define BOOST_TEST_MODULE sharing
 
-#include <graphdb/sharing.h>
+#include <shlut/sharing.h>
 #include <utils/types.h>
 
 #include <boost/test/data/monomorphic.hpp>
@@ -9,7 +9,7 @@
 #include <random>
 #include <vector>
 
-using namespace graphdb;
+using namespace shlut;
 namespace bdata = boost::unit_test::data;
 
 struct GlobalFixture {

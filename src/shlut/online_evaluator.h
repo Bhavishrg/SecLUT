@@ -14,7 +14,7 @@
 
 using namespace common::utils;
 
-namespace graphdb {
+namespace shlut {
   class OnlineEvaluator {
     int nP_;
     int id_;
@@ -48,12 +48,6 @@ namespace graphdb {
 
     void setRandomInputs();
 
-    // void evaluateGatesAtDepthPartySend(size_t depth, std::vector<Ring> &mult_vals);
-
-    // void evaluateGatesAtDepthPartyRecv(size_t depth, std::vector<Ring> &mult_vals);
-    
-    void RecEvaluate(const std::vector<common::utils::FIn2Gate> &mult_gates);
-
     void multEvaluate(const std::vector<common::utils::FIn2Gate> &mult_gates);
 
     void eqzEvaluate(const std::vector<common::utils::FIn1Gate> &eqz_gates);
@@ -61,27 +55,7 @@ namespace graphdb {
     void recEvaluate(const std::vector<common::utils::FIn1Gate> &rec_gates);
 
     void evaluateGatesAtDepth(size_t depth);
-
-    void shuffleEvaluate(const std::vector<common::utils::SIMDOGate> &shuffle_gates);
-
-    void permAndShEvaluate(const std::vector<common::utils::SIMDOGate> &permAndSh_gates);
-
-    void compactEvaluate(const common::utils::SIMDOGate &compact_gate);
-
-    void compactEvaluateParallel(const std::vector<common::utils::SIMDOGate> &compact_gates);
-
-    void groupwiseIndexEvaluate(const common::utils::SIMDOGate &gi_gate);
-
-    void groupwiseIndexEvaluateParallel(const std::vector<common::utils::SIMDOGate> &gi_gates);
-
-    void groupwisePropagateEvaluate(const common::utils::SIMDOGate &gp_gate, int latency);
-
-    void groupwisePropagateEvaluateParallel(const std::vector<common::utils::SIMDOGate> &gp_gates);
-
-    void sortEvaluate(const std::vector<common::utils::SIMDOGate> &sort_gates);
-
-    void rewireEvaluate(const std::vector<common::utils::SIMDOGate> &rewire_gates);
-
+    
     std::vector<Ring> getOutputs();
 
     Ring reconstruct(AddShare<Ring> &shares);
@@ -90,4 +64,4 @@ namespace graphdb {
     std::vector<Ring> evaluateCircuit(const std::unordered_map<common::utils::wire_t, Ring> &inputs);
   };
 
-}; // namespace graphdb
+}; // namespace shlut

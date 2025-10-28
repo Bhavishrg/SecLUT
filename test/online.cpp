@@ -1,9 +1,9 @@
 #define BOOST_TEST_MODULE online
 #include <emp-tool/emp-tool.h>
 #include <io/netmp.h>
-#include <graphdb/offline_evaluator.h>
-#include <graphdb/online_evaluator.h>
-#include <graphdb/sharing.h>
+#include <shlut/offline_evaluator.h>
+#include <shlut/online_evaluator.h>
+#include <shlut/sharing.h>
 
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
@@ -15,7 +15,7 @@
 #include <vector>
 #include <thread>
 
-using namespace graphdb;
+using namespace shlut;
 using namespace common::utils;
 namespace bdata = boost::unit_test::data;
 constexpr int TEST_DATA_MAX_VAL = 1000;
