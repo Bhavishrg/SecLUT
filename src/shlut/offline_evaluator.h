@@ -21,7 +21,6 @@ using namespace common::utils;
 
 namespace shlut {
 class OfflineEvaluator {
-  int nP_;  
   int id_;
   int latency_;  // Network latency in microseconds
   bool use_pking_;  // Use king party for reconstruction
@@ -43,19 +42,22 @@ class OfflineEvaluator {
 
   public:
   
-  OfflineEvaluator(int nP, int my_id, std::shared_ptr<io::NetIOMP> network,
+  OfflineEvaluator(int my_id, std::shared_ptr<io::NetIOMP> network, PreprocCircuit<Ring> preproc,
                    common::utils::LevelOrderedCircuit circ, int threads, int seed = 200, int latency = 100, bool use_pking = true);
 
   // Generate sharing of a random unknown value.
-  static void randomShare(int nP, int pid, RandGenPool& rgen, AddShare<Ring>& share, TPShare<Ring>& tpShare);
+  static void randomAdditiveShare(RandGenPool& rgen, Share<Ring, 1>& share);
 
+  static void randomReplicatedShare(RandGenPool& rgen, Share<Ring, 2>& share);
+
+  static void randomAugmentedShare(RandGenPool& rgen, Share<Ring, 3>& share);
   // Generate sharing of a random value known to party. Should be called by
   // dealer when other parties call other variant.
-  static void randomShareSecret(int nP, int pid, RandGenPool& rgen,
-                                AddShare<Ring>& share, TPShare<Ring>& tpShare, Ring secret,
-                                std::vector<Ring>& rand_sh_sec, size_t& idx_rand_sh_sec);
-
+  static void AdditiveShareSecret(RandGenPool& rgen, Share<Ring, 1>& share, Ring secret, int pid);
   
+  static void ReplicatedShareSecret(RandGenPool& rgen, Share<Ring, 2>& share, Ring secret, int pid);
+
+  static void AugmentedShareSecret(RandGenPool& rgen, Share<Ring, 3>& share, Ring secret, int pid);
   // Following methods implement various preprocessing subprotocols.
 
   // Set masks for each wire. Should be called before running any of the other
@@ -63,7 +65,7 @@ class OfflineEvaluator {
   void setWireMasksParty(const std::unordered_map<common::utils::wire_t, int>& input_pid_map,
                          std::vector<Ring>& rand_sh_sec);
 
-  void setWireMasks(const std::unordered_map<common::utils::wire_t, int>& input_pid_map);
+  // void setWireMasks(const std::unordered_map<common::utils::wire_t, int>& input_pid_map);
 
   PreprocCircuit<Ring> getPreproc();
 

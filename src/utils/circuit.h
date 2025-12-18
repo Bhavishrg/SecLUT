@@ -19,18 +19,32 @@ namespace common::utils {
 
 using wire_t = size_t;
 
+
+//Need to a new GateType kPubLook, will have preprocessing and requires communication in the online phase.
 enum GateType {
   kInp,
-  kRec,
   kAdd,
   kMul,
   kSub,
-  kEqz,
   kConstAdd,
   kConstMul,
+  kInpRSS,
+  kAddRSS,
+  kMulRSS,
+  kSubRSS,
+  kConstAddRSS,
+  kConstMulRSS,
+  kAdd2RSS,
+  kInpAug,
+  kAddAug,
+  kMulAug,
+  kSubAug,
+  kConstAddAug,
+  kConstMulAug,
   kInvalid,
   NumGates
 };
+// See if I actually need so many gates
 
 std::ostream& operator<<(std::ostream& os, GateType type);
 
@@ -99,13 +113,12 @@ struct SIMDGate : public Gate {
 };
 
 // Represents gates where one input is a constant.
-template <class R>
 struct ConstOpGate : public Gate {
   wire_t in{0};
-  R cval;
+  Ring cval;
 
   ConstOpGate() = default;
-  ConstOpGate(GateType type, wire_t in, R cval, wire_t out)
+  ConstOpGate(GateType type, wire_t in, Ring cval, wire_t out)
       : Gate(type, out), in(in), cval(std::move(cval)) {}
 };
 
@@ -139,9 +152,13 @@ class Circuit {
   Circuit() : num_wires(0) {}
 
   // Methods to manually build a circuit.
-  wire_t newInputWire() {
+  wire_t newInputWire(GateType type = GateType::kInp) {
+    if (type != GateType::kInp && type != GateType::kInpRSS && type != GateType::kInpAug) {
+      throw std::invalid_argument("Invalid Gate Type.");
+    }
+
     wire_t wid = num_wires;
-    gates_.push_back(std::make_shared<Gate>(GateType::kInp, wid));
+    gates_.push_back(std::make_shared<Gate>(type, wid));
     num_wires += 1;
     return wid;
   }
@@ -157,7 +174,9 @@ class Circuit {
   // Function to add a gate with fan-in 2.
   wire_t addGate(GateType type, wire_t input1, wire_t input2) {
     if (type != GateType::kAdd && type != GateType::kMul &&
-        type != GateType::kSub) {
+        type != GateType::kSub && type != GateType::kAddRSS &&
+        type != GateType::kMulRSS && type != kSubRSS && type != GateType::kAddAug && 
+        type != GateType::kMulAug && type != GateType::kSubAug) {
       throw std::invalid_argument("Invalid gate type.");
     }
 
@@ -174,8 +193,9 @@ class Circuit {
 
   // Function to add a gate with one input from a wire and a second constant
   // input.
-  wire_t addConstOpGate(GateType type, wire_t wid, R cval) {
-    if (type != kConstAdd && type != kConstMul) {
+  wire_t addConstOpGate(GateType type, wire_t wid, Ring cval) {
+    if (type != kConstAdd && type != kConstMul &&
+        type != kConstAddRSS && type != kConstMulRSS) {
       throw std::invalid_argument("Invalid gate type.");
     }
 
@@ -184,7 +204,7 @@ class Circuit {
     }
 
     wire_t output = num_wires;
-    gates_.push_back(std::make_shared<ConstOpGate<R>>(type, wid, cval, output));
+    gates_.push_back(std::make_shared<ConstOpGate>(type, wid, cval, output));
     num_wires += 1;
 
     return output;
@@ -192,7 +212,7 @@ class Circuit {
 
   // Function to add a single input gate.
   wire_t addGate(GateType type, wire_t input) {
-    if (type != GateType::kEqz && type != GateType::kRec) {
+    if (type != GateType::kAdd2RSS) {
       throw std::invalid_argument("Invalid gate type.");
     }
 
@@ -208,10 +228,6 @@ class Circuit {
   }
 
 
-
-
-
-  
   // Level ordered gates are helpful for evaluation.
   [[nodiscard]] LevelOrderedCircuit orderGatesByLevel() const {
     LevelOrderedCircuit res;
@@ -228,20 +244,19 @@ class Circuit {
     // i < j.
     for (const auto& gate : gates_) {
       switch (gate->type) {
-        case GateType::kRec: {
-          const auto* g = static_cast<FIn1Gate*>(gate.get());
-          gate_level[g->out] = gate_level[g->in] + 1;
-          depth = std::max(depth, gate_level[gate->out]);
-          break;
-        }
         case GateType::kAdd:
-        case GateType::kSub: {
+        case GateType::kSub:
+        case GateType::kAddRSS:
+        case GateType::kSubRSS:
+        case GateType::kAddAug:
+        case GateType::kSubAug:
+        case GateType::kMulRSS {
           const auto* g = static_cast<FIn2Gate*>(gate.get());
           gate_level[g->out] = std::max(gate_level[g->in1], gate_level[g->in2]);
           depth = std::max(depth, gate_level[gate->out]);
           break;
         }
-
+        
         case GateType::kMul: {
           const auto* g = static_cast<FIn2Gate*>(gate.get());
           gate_level[g->out] = std::max(gate_level[g->in1], gate_level[g->in2]) + 1;
@@ -249,22 +264,25 @@ class Circuit {
           break;
         }
 
-        case GateType::kConstAdd:
-        case GateType::kConstMul: {
-          const auto* g = static_cast<ConstOpGate<R>*>(gate.get());
-          gate_level[g->out] = gate_level[g->in];
-          depth = std::max(depth, gate_level[gate->out]);
-          break;
-        }
-
-        case GateType::kEqz: {
+        case GateType::kAdd2RSS: {
           const auto* g = static_cast<FIn1Gate*>(gate.get());
           gate_level[g->out] = gate_level[g->in] + 1;
           depth = std::max(depth, gate_level[gate->out]);
           break;
         }
 
-        case GateType::kInp:
+        case GateType::kConstAdd:
+        case GateType::kConstMul:
+        case GateType::kConstAddRSS:
+        case GateType::kConstMulRSS: {
+          const auto* g = static_cast<ConstOpGate*>(gate.get());
+          gate_level[g->out] = gate_level[g->in];
+          depth = std::max(depth, gate_level[gate->out]);
+          break;
+        }
+
+        // case GateType::kInp:
+        case GateType::kInpRSS:
           // Input gates have depth 0.
           break;
 
@@ -291,7 +309,7 @@ class Circuit {
   }
 
   // Evaluate circuit on plaintext inputs.
-  [[nodiscard]] std::vector<R> evaluate(const std::unordered_map<wire_t, R>& inputs) const {
+  [[nodiscard]] std::vector<Ring> evaluate(const std::unordered_map<wire_t, Ring>& inputs) const {
     auto level_circ = orderGatesByLevel();
     std::vector<R> wires(level_circ.num_gates);
 
@@ -305,49 +323,45 @@ class Circuit {
     for (const auto& level : level_circ.gates_by_level) {
       for (const auto& gate : level) {
         switch (gate->type) {
-          case GateType::kInp: {
+          case GateType::kInp:
+          case GateType::kInpRSS:
+          case GateType::kInpAug: {
             wires[gate->out] = inputs.at(gate->out);
             break;
           }
 
-          case GateType::kMul: {
+          case GateType::kMul:
+          case GateType::kMulRSS: {
             auto* g = static_cast<FIn2Gate*>(gate.get());
             wires[g->out] = wires[g->in1] * wires[g->in2];
             break;
           }
 
-          case GateType::kAdd: {
+          case GateType::kAdd:
+          case GateType::kAddRSS: {
             auto* g = static_cast<FIn2Gate*>(gate.get());
             wires[g->out] = wires[g->in1] + wires[g->in2];
             break;
           }
 
-          case GateType::kSub: {
+          case GateType::kSub:
+          case GateType::kSubRSS: {
             auto* g = static_cast<FIn2Gate*>(gate.get());
             wires[g->out] = wires[g->in1] - wires[g->in2];
             break;
           }
 
-          case GateType::kConstAdd: {
-            auto* g = static_cast<ConstOpGate<R>*>(gate.get());
+          case GateType::kConstAdd:
+          case GateType::kConstAddRSS: {
+            auto* g = static_cast<ConstOpGate*>(gate.get());
             wires[g->out] = wires[g->in] + g->cval;
             break;
           }
 
-          case GateType::kConstMul: {
-            auto* g = static_cast<ConstOpGate<R>*>(gate.get());
+          case GateType::kConstMul:
+          case GateType::kConstMulRSS: {
+            auto* g = static_cast<ConstOpGate*>(gate.get());
             wires[g->out] = wires[g->in] * g->cval;
-            break;
-          }
-
-          case GateType::kEqz: {
-            auto* g = static_cast<FIn1Gate*>(gate.get());
-            if (wires[g->in] == 0) {
-              wires[g->out] = 1;
-            }
-            else {
-              wires[g->out] = 0;
-            }
             break;
           }
 
@@ -356,7 +370,7 @@ class Circuit {
           }
         }
       }
-    }
+    } 
 
     std::vector<R> outputs;
     for (auto i : level_circ.outputs) {
@@ -364,7 +378,7 @@ class Circuit {
     }
 
     return outputs;
-  }
+  } // Check why this function exist
 
 };
 };  // namespace common::utils

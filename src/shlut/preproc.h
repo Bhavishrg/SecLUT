@@ -38,21 +38,18 @@ struct PreprocRecGate : public PreprocGate<R> {
 };
 
 template <class R>
-struct PreprocMultGate : public PreprocGate<R> {
+struct PreprocMultGateAdd : public PreprocGate<R> {
   // Secret shared product of inputs masks.
-  AddShare<R> triple_a; // Holds one beaver triple share of a random value a
-  TPShare<R> tp_triple_a; // Holds all the beaver triple shares of a random value a
-  AddShare<R> triple_b; // Holds one beaver triple share of a random value b
-  TPShare<R> tp_triple_b; // Holds all the beaver triple shares of a random value b
-  AddShare<R> triple_c; // Holds one beaver triple share of c=a*b
-  TPShare<R> tp_triple_c; // Holds all the beaver triple shares of c=a*b
-  PreprocMultGate() = default;
-  PreprocMultGate(const AddShare<R>& triple_a, const TPShare<R>& tp_triple_a,
-                  const AddShare<R>& triple_b, const TPShare<R>& tp_triple_b,
-                  const AddShare<R>& triple_c, const TPShare<R>& tp_triple_c)
-      : PreprocGate<R>(), triple_a(triple_a), tp_triple_a(tp_triple_a),
-        triple_b(triple_b), tp_triple_b(tp_triple_b),
-        triple_c(triple_c), tp_triple_c(tp_triple_c) {}
+  Share<R, 1> triple_a; // Holds one beaver triple share of a random value a
+  Share<R, 1> triple_b; // Holds one beaver triple share of a random value b
+  Share<R, 1> triple_c; // Holds one beaver triple share of c=a*b
+  PreprocMultGateAdd() = default;
+  PreprocMultGateAdd(const Share<R, 1>& triple_a,
+                  const Share<R, 1>& triple_b,
+                  const Share<R, 1>& triple_c)
+      : PreprocGate<R>(), triple_a(triple_a),
+        triple_b(triple_b),
+        triple_c(triple_c) {}
 };
 
 template <class R>

@@ -12,6 +12,185 @@ using namespace common::utils;
 
 namespace shlut {
 
+// Maybe I want to remove size_t N here
+template <class R, size_t N>
+class Share {
+  std::array<R, N> value;
+
+  public:
+    Share() = default;
+    explicit Share(std::vector value)
+        : value_(value) {}
+    
+    void value(std::array<R, N>& array) {array = value;}
+
+    //Finish the operators which can be done.
+    Share<R, N>& operator+=(const Share<R, N>& rhs) {
+      for (size_t i = 0; i < value.size(); i++) {
+        value[i] += rhs.value[i];
+      }
+      return *this;
+    }
+
+    friend Share<R, N> operator+(Share<R, N> lhs, const Share<R, N>& rhs) {
+      lhs += rhs;
+      return lhs;
+    }
+
+    Share<R, N>& operator*=(const R& rhs) {
+      for (size_t i = 0; i < value.size(); i++) {
+        value[i] *= rhs;
+      }
+      return *this;
+    }
+
+    friend Share<R, N> operator*(Share<R, N> lhs, const R& rhs) {
+      lhs *= rhs;
+      return lhs;
+    }
+
+    Share<R, N>& operator-=(const Share<R, N>& rhs) {
+      (*this) += (rhs * R(-1));
+      return *this;
+    }
+
+    friend Share<R, N> operator-(Share<R, N> lhs, const Share<R, N>& rhs) {
+      lhs -= rhs;
+      return lhs;
+    }
+};
+
+template <class R, size_t N>
+class MultiShare {
+  std::vector<std::array<R, N>> values_;
+
+  public:
+  MultiShare() = default;
+  explicit MultiShare(std::vector<std::array<R, N>> value)
+      : values_{std::move(value)} {}
+
+  // Access share elements.
+  std::array<R, N>& operator[](size_t idx) { return values_.at(idx); }
+  std::array<R, N> operator[](size_t idx) const { return values_.at(idx); }
+
+  void pushValues(std::array<R, N> val) { values_.push_back(val); }
+
+  // Arithmetic operators.
+  MultiShare<R, N>& operator+=(const MultiShare<R, N>& rhs) {
+    for (size_t i = 0; i < values_.size(); i++) {
+      for (size_t j = 0; j < N; j++) {
+        values_[i][j] += rhs.values_[i][j];
+      }
+    }
+    return *this;
+  }
+
+  friend MultiShare<R, N> operator+(MultiShare<R, N> lhs,
+                                      const MultiShare<R, N>& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  MultiShare<R, N>& operator*=(const R& rhs) {
+    for (size_t i = 0; i < values_.size(); i++) {
+      for (size_t j = 0; j < N; j++) {
+        values_[i][j] *= rhs;
+      }
+    }
+    return *this;
+  }
+
+  friend MultiShare<R, N> operator*(MultiShare<R, N> lhs, const R& rhs) {
+    lhs *= rhs;
+    return lhs;
+  }
+
+  MultiShare<R, N>& operator-=(const MultiShare<R, N>& rhs) {
+    (*this) += (rhs * R(-1));
+    return *this;
+  }
+
+  friend MultiShare<R, N> operator-(MultiShare<R, N> lhs,
+                                      const MultiShare<R, N>& rhs) {
+    lhs -= rhs;
+    return lhs;
+  }
+};
+
+// Make a class for party-local additive shares.
+template <class R>
+class PartyShare {
+  int pid_;
+  R value1_;
+  R value2_;
+
+public:
+  PartyShare() = default;
+  explicit PartyShare(int pid, R value1, R value2)
+      : pid_(pid), value1_(value1), value2_(value2) {}
+
+  int pid() const { return pid_; }
+  R value1() const { return value1_; }
+  R value2() const { return value2_; }
+
+  //Arithmetic operators.
+  PartyShare<R>& operator+=(const PartyShare<R>& rhs) {
+    value1_ += rhs.value1_;
+    value2_ += rhs.value2_;
+    return *this;
+  }
+
+  friend PartyShare<R> operator+(PartyShare<R> lhs,
+                                      const PartyShare<R>& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  PartyShare<R>& operator+=(const R& rhs) {
+    if (pid_ == 1) {
+      value2_ += rhs;
+    } else if (pid_ == 2) {
+      value1_ += rhs;
+    }
+
+    return *this;
+  }
+
+  friend PartyShare<R> operator+(PartyShare<R> lhs, const R& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+  
+  PartyShare<R>& operator*=(const R& rhs) {
+    value1_ *= rhs;
+    value2_ *= rhs;
+    return *this;
+  }
+  
+  friend PartyShare<R> operator*(PartyShare<R> lhs, const R& rhs) {
+    lhs *= rhs;
+    return lhs;
+  }
+
+  friend PartyShare<R> operator*(const R& lhs, PartyShare<R> rhs) {
+    rhs *= lhs;
+    return rhs;
+  }
+  
+  PartyShare<R>& operator-=(const PartyShare<R>& rhs) {
+    (*this) += (rhs * R(-1));
+    return *this;
+  }
+
+  friend PartyShare<R> operator-(PartyShare<R> lhs,
+                                      const PartyShare<R>& rhs) {
+    lhs -= rhs;
+    return lhs;
+  }
+
+  // Need to finish few more functions later.
+};
+
 template <class R>
 class AddShare {
   R value_;
@@ -317,8 +496,8 @@ struct DummyShare {
     return rhs;
   }
 
-  //ReplicatedShare<R> getRSS(size_t pid) {
-  //  return ReplicatedShare<R>({getShareElement(pid, pidFromOffset(pid, 1)),
+  //Dealer<R> getRSS(size_t pid) {
+  //  return Dealer<R>({getShareElement(pid, pidFromOffset(pid, 1)),
   //                             getShareElement(pid, pidFromOffset(pid, 2)),
   //                             getShareElement(pid, pidFromOffset(pid, 3))});
   //}

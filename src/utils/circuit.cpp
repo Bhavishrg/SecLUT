@@ -31,29 +31,36 @@ SIMDGate::SIMDGate(GateType type, std::vector<wire_t> in1, std::vector<wire_t> i
 std::ostream& operator<<(std::ostream& os, GateType type) {
   switch (type) {
     case kInp:
+    case kInpRSS:
       os << "Input";
       break;
     case kRec:
+    case kRecRSS:
       os << "Reconstruction";
       break;
 
     case kAdd:
+    case kAddRSS:
       os << "Addition";
       break;
 
     case kMul:
+    case kMulRSS:
       os << "Multiplication";
       break;
 
     case kSub:
+    case kSubRSS:
       os << "Subtraction";
       break;
 
     case kConstAdd:
+    case kConstAddRSS:
       os << "Addition with constant";
       break;
 
     case kConstMul:
+    case kConstMulRSS:
       os << "Multiplication with constant";
       break;
     
