@@ -194,64 +194,9 @@ OfflineEvaluator::OfflineEvaluator(int my_id,
               if (id_ == 0) { tp_prod = triple_a.secret() * triple_b.secret(); } // This needs to be changed as there is no dealer here
               AdditiveShareSecret(rgen_, triple_c, tp_prod, id_);
               preproc_.gates[gate->out] =
-                  std::move(std::make_unique<PreprocMultGate<Ring>>(triple_a, triple_b, triple_c));
+                  std::move(std::make_unique<PreprocMultGateAdd<Ring>>(triple_a, triple_b, triple_c));
               break;
             } //Ask Bhavish how to make Beaver triples here
-
-
-
-            case common::utils::GateType::kEqz: {
-              AddShare<Ring> share_r1;
-              TPShare<Ring> tp_share_r1;
-              AddShare<Ring> share_r2;
-              TPShare<Ring> tp_share_r2;
-              std::vector<AddShare<Ring>> share_r1_bits(RINGSIZEBITS);
-              std::vector<TPShare<Ring>> tp_share_r1_bits(RINGSIZEBITS);
-              std::vector<AddShare<Ring>> share_r2_bits(RINGSIZEBITS);
-              std::vector<TPShare<Ring>> tp_share_r2_bits(RINGSIZEBITS);
-              Ring tp_r1 = Ring(0);
-              Ring tp_r2 = Ring(0);
-              std::vector<Ring> tp_r1_bits(RINGSIZEBITS);
-              std::vector<Ring> tp_r2_bits(RINGSIZEBITS);
-
-              // sharing r1 and r1_bits
-              randomShare(nP_, id_, rgen_, share_r1, tp_share_r1);
-              
-              if (id_ == 0) {
-                tp_r1 = tp_share_r1.secret();
-                tp_r1_bits = bitDecomposeToInt(tp_r1);
-              }
-              for (int i = 0; i < RINGSIZEBITS; ++i) {
-                  randomShareSecret(nP_, id_, rgen_, share_r1_bits[i], tp_share_r1_bits[i], tp_r1_bits[i],
-                                                        rand_sh_sec, idx_rand_sh_sec);                                      
-              }
-
-              // sharing r2 and r2_bits
-              if (id_ == 0) {
-                rgen_.p0().random_data(&tp_r2, sizeof(Ring));
-                tp_r2 = tp_r2 % RINGSIZEBITS; // make sure r2 is in [0, RINGSIZEBITS-1]
-              }
-              randomShareSecret(nP_, id_, rgen_, share_r2, tp_share_r2, tp_r2, rand_sh_sec, idx_rand_sh_sec);
-
-              if (id_ == 0) {
-                tp_r2 = tp_share_r2.secret();
-                for (int i = 0; i < RINGSIZEBITS; ++i) {
-                  if (i == tp_r2 % RINGSIZEBITS) {
-                    tp_r2_bits[i] = 1;
-                  } else {
-                    tp_r2_bits[i] = 0;
-                  }
-                }
-              }
-
-              for (int i = 0; i < RINGSIZEBITS; ++i) {
-                randomShareSecret(nP_, id_, rgen_, share_r2_bits[i], tp_share_r2_bits[i], tp_r2_bits[i],
-                                                        rand_sh_sec, idx_rand_sh_sec);
-              }
-              preproc_.gates[gate->out] =
-                  std::make_unique<PreprocEqzGate<Ring>>(share_r1, tp_share_r1, share_r2, tp_share_r2, share_r1_bits, tp_share_r1_bits, share_r2_bits, tp_share_r2_bits);
-              break;
-            }
 
             default: {
               break;

@@ -250,7 +250,7 @@ class Circuit {
         case GateType::kSubRSS:
         case GateType::kAddAug:
         case GateType::kSubAug:
-        case GateType::kMulRSS {
+        case GateType::kMulRSS: {
           const auto* g = static_cast<FIn2Gate*>(gate.get());
           gate_level[g->out] = std::max(gate_level[g->in1], gate_level[g->in2]);
           depth = std::max(depth, gate_level[gate->out]);

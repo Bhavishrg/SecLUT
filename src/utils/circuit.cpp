@@ -34,10 +34,6 @@ std::ostream& operator<<(std::ostream& os, GateType type) {
     case kInpRSS:
       os << "Input";
       break;
-    case kRec:
-    case kRecRSS:
-      os << "Reconstruction";
-      break;
 
     case kAdd:
     case kAddRSS:
@@ -62,10 +58,6 @@ std::ostream& operator<<(std::ostream& os, GateType type) {
     case kConstMul:
     case kConstMulRSS:
       os << "Multiplication with constant";
-      break;
-    
-    case kEqz:
-      os << "Equals to zero";
       break;
 
     default:

@@ -15,19 +15,20 @@ namespace shlut {
 // Maybe I want to remove size_t N here
 template <class R, size_t N>
 class Share {
-  std::array<R, N> value;
+  std::array<R, N> value_;
 
   public:
     Share() = default;
-    explicit Share(std::vector value)
+    explicit Share(std::vector<R> value)
         : value_(value) {}
     
-    void value(std::array<R, N>& array) {array = value;}
+    void value(std::array<R, N>& array) {array = value_;}
+    std::array<R, N>& value() {return value_;}
 
     //Finish the operators which can be done.
     Share<R, N>& operator+=(const Share<R, N>& rhs) {
-      for (size_t i = 0; i < value.size(); i++) {
-        value[i] += rhs.value[i];
+      for (size_t i = 0; i < value_.size(); i++) {
+        value_[i] += rhs.value_[i];
       }
       return *this;
     }
@@ -38,8 +39,8 @@ class Share {
     }
 
     Share<R, N>& operator*=(const R& rhs) {
-      for (size_t i = 0; i < value.size(); i++) {
-        value[i] *= rhs;
+      for (size_t i = 0; i < value_.size(); i++) {
+        value_[i] *= rhs;
       }
       return *this;
     }
